@@ -70,11 +70,11 @@ public class Cell extends JButton {
 
     public Color getColor() {
         Color color = BG_NOT_REVEALED[0];
-        if ((this.row % 2 == 0 && this.col % 2 == 0) || (this.row % 2 != 0 && this.col % 2 != 0))
+        if (this.row % 2 == this.col % 2)
             color = BG_NOT_REVEALED[1];
         if (isRevealed) {
             color = BG_REVEALED[0];
-            if ((this.row % 2 == 0 && this.col % 2 == 0) || (this.row % 2 != 0 && this.col % 2 != 0))
+            if (this.row % 2 == this.col % 2)
                 color = BG_REVEALED[1];
         }
         if (isFlagged) color = FG_NOT_REVEALED;
