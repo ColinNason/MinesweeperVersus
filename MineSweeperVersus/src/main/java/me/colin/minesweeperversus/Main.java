@@ -14,11 +14,10 @@ public class Main extends JFrame{
     public Main() {
         Container cp = this.getContentPane();           // JFrame's content-pane
         cp.setLayout(new BorderLayout()); // in 10x10 GridLayout
-
+        JPanel p = new JPanel( );
+        p.add(new JLabel("Score: "+));
+        cp.add(p, BorderLayout.NORTH);
         cp.add(board, BorderLayout.CENTER);
-
-        // Add btnNewGame to the south to re-start the game
-        // ......
 
         board.newGame();
 
