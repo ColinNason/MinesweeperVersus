@@ -13,7 +13,7 @@ public class Cell extends JButton {
     public static final Color BG_NOT_REVEALED[] = new Color[]{Color.decode("#A7D948"), Color.decode("#8ECC39")};
     public static final Color FG_NOT_REVEALED = Color.RED;    // flag, mines
     public static final Color BG_REVEALED[] = new Color[]{Color.decode("#E5C29F"), Color.decode("#D7B899")};
-    public static final Color[] FG_REVEALED = new Color[]{Color.decode("#00000000"), Color.BLUE, Color.GREEN, Color.RED, Color.PINK, Color.YELLOW, Color.ORANGE, Color.CYAN, Color.BLACK}; // number of mines
+    public static final Color[] FG_REVEALED = new Color[]{new Color(0f,0f,0f,0f), Color.BLUE, Color.GREEN, Color.RED, Color.PINK, Color.YELLOW, Color.ORANGE, Color.CYAN, Color.BLACK}; // number of mines
     public static final Font FONT_NUMBERS = new Font("Monospaced", Font.BOLD, 20);
 
     // Define properties (package-visible)

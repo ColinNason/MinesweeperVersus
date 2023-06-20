@@ -26,7 +26,7 @@ public class GameBoardPanel extends JPanel {
 
     /** Constructor */
     public GameBoardPanel() {
-        super.setLayout(new GridLayout(ROWS, COLS, 0, 0));  // JPanel
+        super.setLayout(new GridLayout(ROWS, COLS, -1, -1));  // JPanel
 
         // Allocate the 2D array of Cell, and added into content-pane.
         for (int row = 0; row < ROWS; ++row) {
@@ -132,6 +132,7 @@ public class GameBoardPanel extends JPanel {
                     freshStart = false;
                 }
 
+                if(sourceCell.isFlagged) return;
 
                 if(sourceCell.isMine) {
                     newGame();
