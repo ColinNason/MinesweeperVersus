@@ -34,6 +34,6 @@ public class Main extends JFrame{
     public static void main(String[] args) {
         Main f =new Main();
 
-        
+
     }
 }
