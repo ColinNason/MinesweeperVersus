@@ -2,6 +2,7 @@ package me.colin.minesweeperversus;
 import java.awt.*;        // Use AWT's Layout Manager
 import java.awt.event.*;
 import java.io.Serial;
+import java.net.MalformedURLException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +16,7 @@ public class Main extends JFrame{
     static Score score = new Score();
 
     // Constructor to set up all the UI and game components
-    public Main() {
+    public Main() throws MalformedURLException {
         Container cp = this.getContentPane();           // JFrame's content-pane
         cp.setLayout(new BorderLayout()); // in 10x10 GridLayout
         JPanel panel = new JPanel();
@@ -31,7 +32,7 @@ public class Main extends JFrame{
         setTitle("Mineswepper");
         setVisible(true);   // show it
     }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException {
         Main f =new Main();
 
 

@@ -1,6 +1,7 @@
 package me.colin.minesweeperversus;
 import java.awt.*;
 import java.awt.event.*;
+import java.net.MalformedURLException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import javax.swing.*;
@@ -27,7 +28,7 @@ public class GameBoardPanel extends JPanel {
     static boolean freshStart = true;
 
     /** Constructor */
-    public GameBoardPanel() {
+    public GameBoardPanel() throws MalformedURLException {
         super.setLayout(new GridLayout(ROWS, COLS, 0, 0));  // JPanel
 
         // Allocate the 2D array of Cell, and added into content-pane.
@@ -67,11 +68,13 @@ public class GameBoardPanel extends JPanel {
             for (int col = 0; col < COLS; col++) {
                 // Initialize each cell with/without mine
                 cells[row][col].newGame(mineMap.isMined[row][col]);
+                surroundingMineCounts[row][col] = -1;
             }
         }
     }
 
     public static boolean[][] isRevealed = new boolean[ROWS][COLS];
+    private static int[][] surroundingMineCounts = new int[ROWS][COLS];
 
     // Return the number of mines [0, 8] in the 8 neighboring cells
     //  of the given cell at (srcRow, srcCol).
@@ -86,6 +89,10 @@ public class GameBoardPanel extends JPanel {
 //            }
 //        }
 //        return numMines;
+        if (surroundingMineCounts[srcRow][srcCol] != -1) {
+            return surroundingMineCounts[srcRow][srcCol];
+        }
+
         int numMines = 0;
         for (int row = Math.max(0, srcRow - 1); row <= Math.min(srcRow + 1, ROWS - 1); row++) {
             for (int col = Math.max(0, srcCol - 1); col <= Math.min(srcCol + 1, COLS - 1); col++) {
@@ -96,6 +103,8 @@ public class GameBoardPanel extends JPanel {
                 }
             }
         }
+
+        surroundingMineCounts[srcRow][srcCol] = numMines;
         return numMines;
     }
 
@@ -140,27 +149,15 @@ public class GameBoardPanel extends JPanel {
         }
     }
 
-
-
-    // Return true if the player has won (all cells have been revealed or were mined)
-    public boolean hasWon() {
-        // ......
-        return true;
-    }
-
-    // [TODO 2] Define a Listener Inner Class
     private class CellMouseListener extends MouseAdapter {
         @Override
         public void mousePressed(MouseEvent e) {         // Get the source object that fired the Event
             Cell sourceCell = (Cell)e.getSource();
-            // For debugging
-            System.out.println("You clicked on (" + sourceCell.row + "," + sourceCell.col + ")");
 
             if(isRevealed[sourceCell.row][sourceCell.col]) return;
 
             // Left-click to reveal a cell; Right-click to plant/remove the flag.
             if (e.getButton() == MouseEvent.BUTTON1) {  // Left-button clicked
-                // [TODO 5] (later, after TODO 3 and 4
                 if(freshStart) {
                     if(getSurroundingMines(sourceCell.row,sourceCell.col) > 0) {
                         newGame();
@@ -174,11 +171,11 @@ public class GameBoardPanel extends JPanel {
 
                 if(sourceCell.isMine) {
                     newGame();
+                    mousePressed(e);
                 } else {
                     revealCell(sourceCell.row, sourceCell.col);
                 }
             } else if (e.getButton() == MouseEvent.BUTTON3) { // right-button clicked
-                // [TODO 6]
                 sourceCell.isFlagged = !sourceCell.isFlagged;
                 sourceCell.paint();
             }
@@ -186,7 +183,7 @@ public class GameBoardPanel extends JPanel {
             if(numTotal == numMines) {
                 newGame();
                 Main.score.win();
-
+                mousePressed(e);
             }
         }
     }

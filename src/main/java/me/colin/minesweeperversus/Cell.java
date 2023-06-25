@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.io.Serial;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import static me.colin.minesweeperversus.GameBoardPanel.getSurroundingMines;
 import static me.colin.minesweeperversus.GameBoardPanel.isRevealed;
@@ -37,7 +39,7 @@ public class Cell extends JButton {
     /**
      * Constructor
      */
-    public Cell(int row, int col) {
+    public Cell(int row, int col) throws MalformedURLException {
         super();   // JTextField
         this.row = row;
         this.col = col;
@@ -48,9 +50,9 @@ public class Cell extends JButton {
     /**
      * Reset this cell, ready for a new game
      */
-    public void newGame(boolean isMined) {
+    public void newGame(boolean isMine) {
         this.isFlagged = false;  // default
-        this.isMine = isMined;  // given
+        this.isMine = isMine;
         super.setEnabled(true);  // enable button
         super.setText("");       // display blank
         super.setBorderPainted(false);
@@ -58,7 +60,7 @@ public class Cell extends JButton {
         paint();
     }
 
-    ImageIcon bigImg = new ImageIcon("src/main/resources/flag_icon.png");
+    ImageIcon bigImg = new ImageIcon(new URL("https://www.google.com/logos/fnbx/minesweeper/flag_icon.png")); // src/main/resources/
     Image image = bigImg.getImage(); // transform it
     Image icon = image.getScaledInstance(50, 50,  Image.SCALE_SMOOTH); // scale it the smooth way
 
