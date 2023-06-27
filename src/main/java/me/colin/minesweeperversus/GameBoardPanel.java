@@ -91,7 +91,6 @@ public class GameBoardPanel extends JPanel {
 //        }
 //        return numMines;
         if (surroundingMineCounts[srcRow][srcCol] != -1) {
-            System.out.println("Used Cache");
             return surroundingMineCounts[srcRow][srcCol];
         }
 
