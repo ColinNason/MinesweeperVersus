@@ -60,6 +60,7 @@ public class GameBoardPanel extends JPanel {
         numTotal = ROWS * COLS;
         isRevealed = new boolean[ROWS][COLS];
         // Get a new mine map
+
         MineMap mineMap = new MineMap();
         mineMap.newMineMap(numMines);
 
@@ -90,6 +91,7 @@ public class GameBoardPanel extends JPanel {
 //        }
 //        return numMines;
         if (surroundingMineCounts[srcRow][srcCol] != -1) {
+            System.out.println("Used Cache");
             return surroundingMineCounts[srcRow][srcCol];
         }
 
@@ -170,6 +172,7 @@ public class GameBoardPanel extends JPanel {
                 if(sourceCell.isFlagged) return;
 
                 if(sourceCell.isMine) {
+                    Main.clickedMine();
                     newGame();
                     mousePressed(e);
                 } else {

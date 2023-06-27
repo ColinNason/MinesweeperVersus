@@ -12,18 +12,24 @@ public class Main extends JFrame{
     @Serial
     private static final long serialVersionUID = 1L;  // to prevent serial warning
 
+    static JFrame jFrame = null;
+
+    static JPanel panel = new JPanel();
     GameBoardPanel board = new GameBoardPanel();
     static Score score = new Score();
 
     // Constructor to set up all the UI and game components
     public Main() throws MalformedURLException {
+        jFrame = this;
         Container cp = this.getContentPane();           // JFrame's content-pane
         cp.setLayout(new BorderLayout()); // in 10x10 GridLayout
-        JPanel panel = new JPanel();
+
         panel.add(new Timer(), BorderLayout.WEST);
         panel.add(score, BorderLayout.CENTER);
         cp.add(panel, BorderLayout.NORTH);
         cp.add(board, BorderLayout.CENTER);
+
+        UIManager.put("Button.select", Color.TRANSLUCENT); // Button Click Colour
 
         board.newGame();
 
@@ -36,5 +42,9 @@ public class Main extends JFrame{
         Main f =new Main();
 
 
+    }
+
+    public static void clickedMine() {
+        //panel.setBackground(Color.RED);
     }
 }
