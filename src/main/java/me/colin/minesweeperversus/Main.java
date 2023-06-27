@@ -1,11 +1,7 @@
 package me.colin.minesweeperversus;
-import java.awt.*;        // Use AWT's Layout Manager
-import java.awt.event.*;
+import java.awt.*;
 import java.io.Serial;
 import java.net.MalformedURLException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import javax.swing.*;
 
 public class Main extends JFrame{
@@ -39,12 +35,37 @@ public class Main extends JFrame{
         setVisible(true);   // show it
     }
     public static void main(String[] args) throws MalformedURLException {
-        Main f =new Main();
+        new Main();
 
 
     }
 
+    static Thread thread;
+
     public static void clickedMine() {
-        //panel.setBackground(Color.RED);
+        Color oldColour = Color.RED;
+        panel.setBackground(oldColour);
+        int FadeSteps = 75;
+        Color colour = Color.white;
+        final int dRed = colour.getRed() - oldColour.getRed();
+        final int dGreen = colour.getGreen() - oldColour.getGreen();
+        final int dBlue = colour.getBlue() - oldColour.getBlue();
+        if(thread != null) thread.stop(); //TODO end loop/thread safely
+        thread = new Thread(() -> { // Make a separate thread to not freeze the main thread
+            for (int i = 0; i <= FadeSteps; i++) {
+                final Color c = new Color(
+                        oldColour.getRed() + ((dRed * i) / FadeSteps),
+                        oldColour.getGreen() + ((dGreen * i) / FadeSteps),
+                        oldColour.getBlue() + ((dBlue * i) / FadeSteps));
+                panel.setBackground(c);
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            thread = null;
+        });
+        thread.start();
     }
 }

@@ -5,7 +5,7 @@ import java.util.Random;
 public class MineMap {
     // package access
     int numMines;
-    boolean[][] isMined = new boolean[Board.ROWS][Board.COLS];
+    boolean[][] isMined = new boolean[Constants.ROWS][Constants.COLS];
     // default is false
 
     // Constructor
@@ -18,8 +18,8 @@ public class MineMap {
         this.numMines = numMines;
 
         for(int i = 0; i < numMines;) {
-            int x = new Random().nextInt(Board.ROWS);
-            int y = new Random().nextInt(Board.COLS);
+            int x = new Random().nextInt(Constants.ROWS);
+            int y = new Random().nextInt(Constants.COLS);
 
             if(!isMined[x][y]) {
                 isMined[x][y] = true;

@@ -1,14 +1,12 @@
 package me.colin.minesweeperversus;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.io.Serial;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static me.colin.minesweeperversus.GameBoardPanel.getSurroundingMines;
-import static me.colin.minesweeperversus.GameBoardPanel.isRevealed;
+import static me.colin.minesweeperversus.GameBoardPanel.*;
 
 public class Cell extends JButton {
     @Serial
@@ -46,7 +44,7 @@ public class Cell extends JButton {
         // Set JButton's default display properties
         super.setFont(FONT_NUMBERS);
         super.setBorderPainted(false);
-        super.setMultiClickThreshhold(0);
+        super.setDoubleBuffered(true);
 
         JButton button = this;
         this.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -80,6 +78,7 @@ public class Cell extends JButton {
      * Paint itself based on its status
      */
     public void paint() {
+        if(!doRender) return; // If searching for a 0 click on start DONT RENDER
         int numMines = getSurroundingMines(this.row, this.col);
         super.setForeground(isRevealed[this.row][this.col] ? FG_REVEALED[numMines] : FG_NOT_REVEALED);
         Color color = getColor(false);

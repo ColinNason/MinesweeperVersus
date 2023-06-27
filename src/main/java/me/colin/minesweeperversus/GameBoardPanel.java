@@ -1,16 +1,16 @@
 package me.colin.minesweeperversus;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.Serial;
 import java.net.MalformedURLException;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import javax.swing.*;
 
-import static me.colin.minesweeperversus.Board.COLS;
-import static me.colin.minesweeperversus.Board.ROWS;
+import static me.colin.minesweeperversus.Constants.COLS;
+import static me.colin.minesweeperversus.Constants.ROWS;
 
 
 public class GameBoardPanel extends JPanel {
+    @Serial
     private static final long serialVersionUID = 1L;  // to prevent serial warning
 
     // Define named constants for UI sizes
@@ -20,16 +20,21 @@ public class GameBoardPanel extends JPanel {
 
     // Define properties (package-visible)
     /** The game board composes of ROWSxCOLS cells */
-    static Cell cells[][] = new Cell[ROWS][COLS];
+    static Cell[][] cells = new Cell[ROWS][COLS];
     /** Number of mines */
     int numMines = 10;
     static int numTotal = ROWS * COLS;
 
+    static boolean doRender = true;
+
     static boolean freshStart = true;
+
+    static JPanel board;
 
     /** Constructor */
     public GameBoardPanel() throws MalformedURLException {
         super.setLayout(new GridLayout(ROWS, COLS, 0, 0));  // JPanel
+        board = this;
 
         // Allocate the 2D array of Cell, and added into content-pane.
         for (int row = 0; row < ROWS; ++row) {
@@ -64,6 +69,7 @@ public class GameBoardPanel extends JPanel {
         MineMap mineMap = new MineMap();
         mineMap.newMineMap(numMines);
 
+        this.setVisible(false);
         // Reset cells, mines, and flags
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
@@ -72,6 +78,7 @@ public class GameBoardPanel extends JPanel {
                 surroundingMineCounts[row][col] = -1;
             }
         }
+        this.setVisible(true);
     }
 
     public static boolean[][] isRevealed = new boolean[ROWS][COLS];
@@ -139,6 +146,8 @@ public class GameBoardPanel extends JPanel {
         cells[srcRow][srcCol].paint();  // based on isRevealed
         numTotal--;
 
+        board.setVisible(false);
+
         if (numMines == 0) {
             for (int row = Math.max(0, srcRow - 1); row <= Math.min(srcRow + 1, ROWS - 1); row++) {
                 for (int col = Math.max(0, srcCol - 1); col <= Math.min(srcCol + 1, COLS - 1); col++) {
@@ -148,23 +157,27 @@ public class GameBoardPanel extends JPanel {
                 }
             }
         }
+        board.setVisible(true);
     }
 
     private class CellMouseListener extends MouseAdapter {
         @Override
         public void mousePressed(MouseEvent e) {         // Get the source object that fired the Event
             Cell sourceCell = (Cell)e.getSource();
+            System.out.println("Click");
 
             if(isRevealed[sourceCell.row][sourceCell.col]) return;
 
             // Left-click to reveal a cell; Right-click to plant/remove the flag.
             if (e.getButton() == MouseEvent.BUTTON1) {  // Left-button clicked
                 if(freshStart) {
-                    if(getSurroundingMines(sourceCell.row,sourceCell.col) > 0) {
+                    if(sourceCell.isMine || getSurroundingMines(sourceCell.row,sourceCell.col) > 0) {
+                        doRender = false;
                         newGame();
                         mousePressed(e);
                         return;
                     }
+                    doRender = true;
                     freshStart = false;
                 }
 
