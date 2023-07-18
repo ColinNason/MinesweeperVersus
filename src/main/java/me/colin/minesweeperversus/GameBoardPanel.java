@@ -1,10 +1,17 @@
 package me.colin.minesweeperversus;
+import me.colin.minesweeperversus.info.FlagsLeft;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
+import java.io.IOException;
 import java.io.Serial;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import javax.swing.*;
 
+import static me.colin.minesweeperversus.CellAnimation.*;
 import static me.colin.minesweeperversus.Constants.COLS;
 import static me.colin.minesweeperversus.Constants.ROWS;
 
@@ -22,7 +29,7 @@ public class GameBoardPanel extends JPanel {
     /** The game board composes of ROWSxCOLS cells */
     static Cell[][] cells = new Cell[ROWS][COLS];
     /** Number of mines */
-    int numMines = 10;
+    public static int numMines = 10;
     static int numTotal = ROWS * COLS;
 
     static boolean doRender = true;
@@ -31,10 +38,16 @@ public class GameBoardPanel extends JPanel {
 
     static JPanel board;
 
+    public boolean host;
+
+    public Main instance;
+
     /** Constructor */
-    public GameBoardPanel() throws MalformedURLException {
+    public GameBoardPanel(Main mainInstance, boolean host) throws IOException {
         super.setLayout(new GridLayout(ROWS, COLS, 0, 0));  // JPanel
         board = this;
+        this.host = host;
+        instance = mainInstance;
 
         // Allocate the 2D array of Cell, and added into content-pane.
         for (int row = 0; row < ROWS; ++row) {
@@ -61,13 +74,36 @@ public class GameBoardPanel extends JPanel {
 
     // Initialize and re-initialize a new game
     public void newGame() {
+        if(host) {
+            MineMap mineMap = new MineMap();
+            mineMap.newMineMap(numMines);
+            newGameInner(mineMap);
+        } else {
+
+        }
+    }
+
+    public void newGame(long bitboard) {
+        MineMap mineMap = new MineMap();
+        mineMap.interpretBitboard(bitboard);
+        newGameInner(mineMap);
+
+
+    }
+
+    private void newGameInner(MineMap mineMap) {
         freshStart = true;
         numTotal = ROWS * COLS;
         isRevealed = new boolean[ROWS][COLS];
         // Get a new mine map
 
-        MineMap mineMap = new MineMap();
-        mineMap.newMineMap(numMines);
+        //mineMap.newMineMap(numMines);
+        //mineMap.interpretBitboard(0b11111111111);
+
+        FlagsLeft.left = numMines;
+        FlagsLeft.update();
+
+        openCells = new HashSet<>();
 
         this.setVisible(false);
         // Reset cells, mines, and flags
@@ -82,21 +118,11 @@ public class GameBoardPanel extends JPanel {
     }
 
     public static boolean[][] isRevealed = new boolean[ROWS][COLS];
-    private static int[][] surroundingMineCounts = new int[ROWS][COLS];
+    private static final int[][] surroundingMineCounts = new int[ROWS][COLS];
 
     // Return the number of mines [0, 8] in the 8 neighboring cells
     //  of the given cell at (srcRow, srcCol).
     public static int getSurroundingMines(int srcRow, int srcCol) {
-//        int numMines = 0;
-//        for (int row = srcRow - 1; row <= srcRow + 1; row++) {
-//            for (int col = srcCol - 1; col <= srcCol + 1; col++) {
-//                // Need to ensure valid row and column numbers too
-//                if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-//                    if (cells[row][col].isMine) numMines++;
-//                }
-//            }
-//        }
-//        return numMines;
         if (surroundingMineCounts[srcRow][srcCol] != -1) {
             return surroundingMineCounts[srcRow][srcCol];
         }
@@ -118,33 +144,27 @@ public class GameBoardPanel extends JPanel {
 
     // Reveal the cell at (srcRow, srcCol)
     // If this cell has 0 mines, reveal the 8 neighboring cells recursively
-    private void revealCell(int srcRow, int srcCol) {
-//        int numMines = getSurroundingMines(srcRow, srcCol);
-//        cells[srcRow][srcCol].setText(numMines + "");
-//        cells[srcRow][srcCol].isRevealed = true;
-//        cells[srcRow][srcCol].paint();  // based on isRevealed
-//        numTotal--;
-//        if (numMines == 0) {
-//            // Recursively reveal the 8 neighboring cells
-//            for (int row = srcRow - 1; row <= srcRow + 1; row++) {
-//                for (int col = srcCol - 1; col <= srcCol + 1; col++) {
-//                    // Need to ensure valid row and column numbers too
-//                    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-//                        if (!cells[row][col].isRevealed) revealCell(row, col);
-//                    }
-//                }
-//            }
-//        }
 
+    public static HashSet<Cell> openCells = new HashSet<>();
+
+    private void revealCell(int srcRow, int srcCol, boolean topLevelRecursion){
         if (isRevealed[srcRow][srcCol]) {
             return; // Cell already revealed
         }
 
+        try {
+            new CellAnimation(cells[srcRow][srcCol]);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         int numMines = getSurroundingMines(srcRow, srcCol);
         cells[srcRow][srcCol].setText(numMines + "");
         isRevealed[srcRow][srcCol] = true;
-        cells[srcRow][srcCol].paint();  // based on isRevealed
+        cells[srcRow][srcCol].isFlagged = -1;
+        cells[srcRow][srcCol].paint();
+        openCells.add(cells[srcRow][srcCol]);  // based on isRevealed
         numTotal--;
+
 
         board.setVisible(false);
 
@@ -152,10 +172,13 @@ public class GameBoardPanel extends JPanel {
             for (int row = Math.max(0, srcRow - 1); row <= Math.min(srcRow + 1, ROWS - 1); row++) {
                 for (int col = Math.max(0, srcCol - 1); col <= Math.min(srcCol + 1, COLS - 1); col++) {
                     if (row != srcRow || col != srcCol) {
-                        revealCell(row, col);
+                        revealCell(row, col, false);
                     }
                 }
             }
+        }
+        if(topLevelRecursion) {
+            Cell.updateCells(); // Batch updates (Cell borders)
         }
         board.setVisible(true);
     }
@@ -164,9 +187,6 @@ public class GameBoardPanel extends JPanel {
         @Override
         public void mousePressed(MouseEvent e) {         // Get the source object that fired the Event
             Cell sourceCell = (Cell)e.getSource();
-            System.out.println("Click");
-
-            if(isRevealed[sourceCell.row][sourceCell.col]) return;
 
             // Left-click to reveal a cell; Right-click to plant/remove the flag.
             if (e.getButton() == MouseEvent.BUTTON1) {  // Left-button clicked
@@ -181,25 +201,124 @@ public class GameBoardPanel extends JPanel {
                     freshStart = false;
                 }
 
-                if(sourceCell.isFlagged) return;
+                // <Cording>
+                if(isRevealed[sourceCell.row][sourceCell.col]) {
+
+
+                    int srcRow = sourceCell.row;
+                    int srcCol = sourceCell.col;
+                    int numFlags = 0;
+                    ArrayList<Cell> cellList = new ArrayList<>();
+                    for (int row = Math.max(0, srcRow - 1); row <= Math.min(srcRow + 1, ROWS - 1); row++) {
+                        for (int col = Math.max(0, srcCol - 1); col <= Math.min(srcCol + 1, COLS - 1); col++) {
+                            if (row != srcRow || col != srcCol) {
+                                if (cells[row][col].isFlagged != -1) {
+                                    numFlags++;
+                                } else
+                                if (!isRevealed[row][col]) {
+                                    cellList.add(cells[row][col]);
+                                }
+                            }
+                        }
+                    }
+
+                    if(getSurroundingMines(srcRow, srcCol) == numFlags) {
+                        for (Cell cell : cellList) {
+                            e.setSource(cell);
+                            mousePressed(e);
+                        }
+                    }
+                    return;
+                }
+                // </Cording> //TODO Move this function to Right and Left click
+
+
+                if(sourceCell.isFlagged != -1) return;
 
                 if(sourceCell.isMine) {
-                    Main.clickedMine();
+                    new ClickedMine();
                     newGame();
                     mousePressed(e);
                 } else {
-                    revealCell(sourceCell.row, sourceCell.col);
+                    revealCell(sourceCell.row, sourceCell.col, true);
                 }
             } else if (e.getButton() == MouseEvent.BUTTON3) { // right-button clicked
-                sourceCell.isFlagged = !sourceCell.isFlagged;
+                if(isRevealed[sourceCell.row][sourceCell.col]) return;
+                //sourceCell.isFlagged = !sourceCell.isFlagged;
+
+
+
+                if(sourceCell.isFlagged != -1) {
+                    FlagsLeft.left++;
+                    sourceCell.isFlagged = -1;
+                } else {
+                    FlagsLeft.left--;
+                    sourceCell.isFlagged = 0;
+                    flagAnimation(sourceCell);
+                }
+                FlagsLeft.update();
                 sourceCell.paint();
             }
 
             if(numTotal == numMines) {
                 newGame();
-                Main.score.win();
+                instance.score.win();
                 mousePressed(e);
             }
         }
+
+        //TODO Left and right  click
+
+
+    }
+
+
+    private void flagAnimation(Cell sourceCell) {
+        Thread thread = new Thread(() -> { // Make a separate thread to not freeze the main thread
+            while(sourceCell.isFlagged != -1 && sourceCell.isFlagged < 10) {
+                sourceCell.isFlagged++;
+                sourceCell.paint();
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+    }
+
+
+    static ArrayList<CellAnimation> animationList = new ArrayList<>();
+
+    public static void update() {
+        board.repaint();
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        ArrayList<CellAnimation> toRemove = new ArrayList<>();
+        animationList.forEach(cellAnimation -> { //TODO Modification mid execution can cause runtime errors
+            //if(cellAnimation == null) return;
+
+            Graphics2D g2d = (Graphics2D)g;
+            g2d.setColor(cellAnimation.color);
+            Rectangle rect2 = new Rectangle(0, 0, cellAnimation.size, cellAnimation.size);
+
+            AffineTransform tx = new AffineTransform();
+            tx.rotate(Math.toRadians(cellAnimation.currentRotation));
+
+            AffineTransform t = new AffineTransform();
+            t.translate(cellAnimation.posX,cellAnimation.posY);
+            t.concatenate(tx);
+
+            Shape newShape = t.createTransformedShape(rect2);
+            g2d.draw(newShape);
+            g2d.fill(newShape);
+
+            if(cellAnimation.toRemove) toRemove.add(cellAnimation);
+        });
+        animationList.removeAll(toRemove);
     }
 }
