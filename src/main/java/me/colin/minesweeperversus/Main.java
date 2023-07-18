@@ -54,7 +54,7 @@ public class Main extends JFrame{
     }
     public static void main(String[] args) throws IOException {
         new Main(true);
-        new Main(false);
+        //new Main(false);
 
     }
 }
